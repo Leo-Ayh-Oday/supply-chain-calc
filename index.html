@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>供链罗盘 — 断供压力测试计算器（免费版）</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:#f5f7fa;color:#1e293b;line-height:1.6}
+  .container{max-width:860px;margin:0 auto;padding:24px 20px 60px}
+  header{display:flex;justify-content:space-between;align-items:center;padding:16px 0 24px;border-bottom:1px solid #e2e8f0;margin-bottom:28px}
+  .logo{font-size:22px;font-weight:700;color:#1e40af}
+  .logo span{color:#64748b;font-weight:400;font-size:13px;margin-left:8px}
+  .badge{font-size:11px;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:4px}
+  .card{background:#fff;border-radius:10px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin-bottom:20px}
+  h2{font-size:16px;color:#334155;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid #3b82f6;display:inline-block}
+  .form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .form-group{flex:1;min-width:130px}
+  .form-group label{display:block;font-size:12px;color:#64748b;margin-bottom:4px;font-weight:500}
+  .form-group input{width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px;transition:border-color .15s}
+  .form-group input:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.15)}
+  .alt-row{display:flex;gap:10px;align-items:end;margin-bottom:8px;padding:12px;background:#f8fafc;border-radius:8px;border:1px dashed #e2e8f0}
+  .alt-row .form-group{min-width:90px}
+  .alt-row .alt-label{font-size:13px;color:#3b82f6;font-weight:600;min-width:20px;padding-bottom:8px;align-self:center}
+  .btn{padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;border:1px solid transparent;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+  .btn-primary{background:#3b82f6;color:#fff}.btn-primary:hover{background:#2563eb}
+  .btn-outline{background:#fff;color:#3b82f6;border-color:#3b82f6}.btn-outline:hover{background:#eff6ff}
+  .btn-danger{background:#fff;color:#ef4444;border-color:#fecaca}.btn-danger:hover{background:#fef2f2}
+  .btn-lg{padding:12px 28px;font-size:15px;border-radius:8px}
+  .btn-demo{background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff}.btn-demo:hover{background:linear-gradient(135deg,#d97706,#ea580c)}
+  .btn-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .result-hero{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+  .result-stat{flex:1;min-width:130px;text-align:center;padding:20px 16px;background:#f0f9ff;border-radius:10px;border:1px solid #bae6fd}
+  .result-stat .value{font-size:26px;font-weight:700;color:#0369a1}
+  .result-stat .label{font-size:12px;color:#64748b;margin-top:4px}
+  .result-stat.warning{background:#fef2f2;border-color:#fecaca}.result-stat.warning .value{color:#dc2626}
+  .rank-card{display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:8px;margin-bottom:8px;border:1px solid #e2e8f0}
+  .rank-card.best{background:#f0fdf4;border-color:#bbf7d0}
+  .rank-badge{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0}
+  .rank-badge.gold{background:#fef3c7;color:#b45309}.rank-badge.silver{background:#f1f5f9;color:#64748b}.rank-badge.bronze{background:#fff7ed;color:#c2410c}
+  .rank-info{flex:1}.rank-name{font-weight:600;font-size:15px}.rank-meta{font-size:12px;color:#64748b;margin-top:2px}
+  .rank-loss{text-align:right}.rank-loss .total{font-size:20px;font-weight:700;color:#dc2626}.rank-loss .breakdown{font-size:11px;color:#94a3b8}
+  .timeline{position:relative;padding-left:20px;margin-top:12px}
+  .timeline::before{content:'';position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:#e2e8f0}
+  .timeline-event{position:relative;margin-bottom:10px;padding-left:18px}
+  .timeline-event::before{content:'';position:absolute;left:-15px;top:6px;width:10px;height:10px;border-radius:50%;background:#3b82f6}
+  .timeline-event .t-day{font-size:11px;color:#94a3b8}.timeline-event .t-event{font-size:13px;font-weight:500}.timeline-event .t-detail{font-size:12px;color:#64748b}
+  .audit-toggle{background:none;border:none;color:#3b82f6;font-size:13px;cursor:pointer;padding:4px 0;font-weight:500}.audit-toggle:hover{color:#1d4ed8}
+  .audit-list{display:none;margin-top:8px}.audit-list.open{display:block}
+  .audit-entry{padding:8px 12px;font-size:12px;color:#475569;border-left:2px solid #e2e8f0;margin-bottom:4px;background:#f8fafc;font-family:"SF Mono",Consolas,monospace}
+  .hidden{display:none!important}.loading{text-align:center;padding:40px;color:#64748b}
+  .error-msg{color:#dc2626;font-size:13px;padding:8px 12px;background:#fef2f2;border-radius:6px;margin-top:8px}
+  hr{border:none;border-top:1px solid #e2e8f0;margin:16px 0}
+  .upgrade-bar{background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;padding:14px 20px;border-radius:10px;margin-top:24px;text-align:center;font-size:14px;line-height:1.8}
+  .upgrade-bar a{color:#fef3c7;font-weight:600}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="logo">供链罗盘<span>断供压力测试计算器</span></div>
+  <div class="badge">免费版</div>
+</header>
+
+<div class="card" id="input-card">
+  <h2>输入面板</h2>
+  <div class="form-row">
+    <div class="form-group"><label>主供应商名称</label><input id="sup-name" placeholder="如：宁波瑞达汽配"></div>
+    <div class="form-group"><label>当前库存（件）</label><input id="sup-inventory" type="number" step="any" placeholder="0"></div>
+    <div class="form-group"><label>日消耗量（件/天）</label><input id="sup-daily" type="number" step="any" placeholder="0"></div>
+    <div class="form-group"><label>单价（元/件）</label><input id="sup-price" type="number" step="any" placeholder="0"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>日产值（元/天）</label><input id="line-output" type="number" step="any" placeholder="0"></div>
+    <div class="form-group"><label>停工日罚金（元/天）</label><input id="line-penalty" type="number" step="any" placeholder="0"></div>
+    <div class="form-group"><label>安全库存天数</label><input id="safety-stock" type="number" value="30"></div>
+    <div class="form-group"><label>订单违约金（元/天）</label><input id="order-penalty" type="number" step="any" value="0"></div>
+  </div>
+  <hr>
+  <h2>备选供应商</h2>
+  <div id="alt-list"></div>
+  <button class="btn btn-outline" onclick="addAltRow()" style="margin-top:4px;">+ 添加备选供应商</button>
+  <div class="btn-actions">
+    <button class="btn btn-lg btn-demo" onclick="loadDemo()">✨ 试试演示案例</button>
+    <button class="btn btn-lg btn-primary" onclick="runSimulation()">▶ 开始推演</button>
+  </div>
+  <div id="input-error" class="error-msg hidden"></div>
+</div>
+
+<div class="card hidden" id="results-card">
+  <h2>推演结果</h2>
+  <div class="result-hero" id="result-hero"></div>
+  <h2 style="margin-top:4px;">备选方案排序</h2>
+  <div id="ranking-list"></div>
+  <div id="detail-section"></div>
+</div>
+
+<div class="upgrade-bar">
+  这是<b>免费计算器</b>，数据存于本地，关闭即丢失。<br>
+  如需<b>账号系统 · 审计报告导出 · 历史记录 · 团队共享</b>，请升级到在线版。<br>
+  <a href="https://gonglianluopan.com" target="_blank">了解在线版 →</a> &nbsp;或&nbsp; 加微信获取内测资格：<b>gonglian2026</b>
+</div>
+
+</div>
+
+<script>
+// ── 引擎（纯 JS）──
+function simulate(input) {
+  const results = [];
+  const inv = input.inventory, rate = input.dailyRate;
+  const survival = rate <= 0 ? Infinity : inv / rate;
+
+  for (const alt of input.alternatives) {
+    const downtime = rate <= 0 ? 0 : Math.max(0, alt.leadTime - survival);
+    const prodLoss = downtime * input.dailyPenalty;
+    const orderQty = rate * input.safetyStock;
+    const switchCost = orderQty * alt.unitPrice;
+    const orderPenalty = Math.max(0, alt.leadTime - survival) * input.orderPenalty;
+    const totalLoss = prodLoss + switchCost + orderPenalty;
+
+    // 时间线
+    const timeline = [{ day: 0, event: '断供发生', detail: `${input.supplierName} 停止供货，库存 ${inv} 件` }];
+    if (rate <= 0) {
+      timeline.push({ day: 0, event: '永不枯竭', detail: '日消耗为0' });
+    } else if (survival <= alt.leadTime) {
+      timeline.push({ day: Math.round(survival*10)/10, event: '库存归零', detail: `以日耗 ${rate} 件速度，${survival.toFixed(1)} 天后库存耗尽` });
+      timeline.push({ day: Math.round(survival*10)/10, event: '产线停工', detail: `备选 ${alt.name} 还需 ${downtime.toFixed(1)} 天到货` });
+      timeline.push({ day: Math.round((survival+alt.leadTime)*10)/10, event: '备选到货', detail: `${alt.name} 到货，产线恢复` });
+    } else {
+      timeline.push({ day: alt.leadTime, event: '备选到货', detail: `${alt.name} 到货（第${alt.leadTime}天），库存未耗尽即补货` });
+    }
+    timeline.sort((a,b) => a.day - b.day);
+
+    // 审计链
+    const audit = [];
+    if (rate <= 0) {
+      audit.push('存活天数: ∞ (日消耗为0)');
+    } else {
+      audit.push(`存活天数: ${survival.toFixed(1)} 天 = ${inv}件 / ${rate}件/天 (来源: 当前库存=${inv}, 日消耗=${rate})`);
+      audit.push(`停产天数: ${downtime.toFixed(1)} 天 = max(0, ${alt.leadTime}天到货 - ${survival.toFixed(1)}天存活) (来源: 备选=${alt.name}, 到货周期=${alt.leadTime}天)`);
+      audit.push(`停产损失: ¥${prodLoss.toLocaleString('zh-CN')} = ${downtime.toFixed(1)}天 × ¥${input.dailyPenalty.toLocaleString('zh-CN')}/天 (来源: 停工日罚金=${input.dailyPenalty})`);
+      audit.push(`切换成本: ¥${switchCost.toLocaleString('zh-CN')} = ${orderQty}件 × ¥${alt.unitPrice}/件 (来源: 安全库存天数=${input.safetyStock}, 备选单价=${alt.unitPrice})`);
+      if (input.orderPenalty > 0) {
+        audit.push(`订单违约金: ¥${orderPenalty.toLocaleString('zh-CN')} = max(0, ${alt.leadTime}-${survival.toFixed(1)}) × ¥${input.orderPenalty.toLocaleString('zh-CN')}/天 (来源: 订单罚金率=${input.orderPenalty})`);
+      } else {
+        audit.push('订单违约金: ¥0');
+      }
+      audit.push(`总损失: ¥${totalLoss.toLocaleString('zh-CN')} = 停产${prodLoss.toLocaleString('zh-CN')} + 切换${switchCost.toLocaleString('zh-CN')} + 违约${orderPenalty.toLocaleString('zh-CN')}`);
+    }
+
+    results.push({
+      name: alt.name, leadTime: alt.leadTime, unitPrice: alt.unitPrice,
+      quality: alt.quality, survival: rate <= 0 ? Infinity : +survival.toFixed(1),
+      downtime: +downtime.toFixed(1), prodLoss: Math.round(prodLoss),
+      switchCost: Math.round(switchCost), orderPenalty: Math.round(orderPenalty),
+      totalLoss: Math.round(totalLoss), timeline, audit
+    });
+  }
+  results.sort((a,b) => a.totalLoss - b.totalLoss);
+  return results;
+}
+
+// ── UI ──
+let altCounter = 0;
+
+function addAltRow(name='', lead='', price='', minQty='500', quality='0.8') {
+  altCounter++;
+  const div = document.createElement('div'); div.className = 'alt-row'; div.id = 'alt-row-' + altCounter;
+  div.innerHTML = `<span class="alt-label">备选${altCounter}</span>
+    <div class="form-group"><label>名称</label><input class="alt-name" value="${esc(name)}"></div>
+    <div class="form-group"><label>到货(天)</label><input class="alt-lead" type="number" value="${lead}"></div>
+    <div class="form-group"><label>单价(元)</label><input class="alt-price" type="number" step="any" value="${price}"></div>
+    <div class="form-group"><label>起订量</label><input class="alt-minqty" type="number" step="any" value="${minQty}"></div>
+    <div class="form-group"><label>质量(0-1)</label><input class="alt-quality" type="number" step="0.01" min="0" max="1" value="${quality}"></div>
+    <button class="btn btn-danger" onclick="this.closest('.alt-row').remove()" style="flex-shrink:0;align-self:center;">✕</button>`;
+  document.getElementById('alt-list').appendChild(div);
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function collectInput() {
+  const alts = [];
+  document.querySelectorAll('.alt-row').forEach(row => {
+    const name = row.querySelector('.alt-name').value.trim();
+    if (!name) return;
+    alts.push({
+      name,
+      leadTime: parseInt(row.querySelector('.alt-lead').value) || 0,
+      unitPrice: parseFloat(row.querySelector('.alt-price').value) || 0,
+      minQty: parseFloat(row.querySelector('.alt-minqty').value) || 500,
+      quality: parseFloat(row.querySelector('.alt-quality').value) || 0.8,
+    });
+  });
+  return {
+    supplierName: document.getElementById('sup-name').value.trim() || '主供应商',
+    inventory: parseFloat(document.getElementById('sup-inventory').value) || 0,
+    dailyRate: parseFloat(document.getElementById('sup-daily').value) || 0,
+    unitPrice: parseFloat(document.getElementById('sup-price').value) || 0,
+    dailyOutput: parseFloat(document.getElementById('line-output').value) || 0,
+    dailyPenalty: parseFloat(document.getElementById('line-penalty').value) || 0,
+    safetyStock: parseInt(document.getElementById('safety-stock').value) || 30,
+    orderPenalty: parseFloat(document.getElementById('order-penalty').value) || 0,
+    alternatives: alts,
+  };
+}
+
+function loadDemo() {
+  document.getElementById('sup-name').value = '宁波瑞达汽配';
+  document.getElementById('sup-inventory').value = 720;
+  document.getElementById('sup-daily').value = 40;
+  document.getElementById('sup-price').value = 85;
+  document.getElementById('line-output').value = 200000;
+  document.getElementById('line-penalty').value = 60000;
+  document.getElementById('safety-stock').value = 25;
+  document.getElementById('order-penalty').value = 15000;
+  document.getElementById('alt-list').innerHTML = '';
+  altCounter = 0;
+  addAltRow('安徽供应商', 30, 92, 1000, 0.85);
+  addAltRow('本地小厂', 26, 105, 500, 0.70);
+  addAltRow('广东大厂', 22, 85, 1500, 0.92);
+  document.getElementById('input-error').classList.add('hidden');
+}
+
+function runSimulation() {
+  const input = collectInput();
+  if (input.alternatives.length === 0) { showError('请至少添加一个备选供应商'); return; }
+  document.getElementById('input-error').classList.add('hidden');
+  document.getElementById('results-card').classList.remove('hidden');
+  const results = simulate(input);
+  renderResults(input, results);
+  document.getElementById('results-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderResults(input, results) {
+  const best = results[0];
+  const hero = document.getElementById('result-hero');
+  const survival = best.survival === Infinity ? '∞' : best.survival.toFixed(1) + ' 天';
+  hero.innerHTML = `
+    <div class="result-stat warning"><div class="value">${survival}</div><div class="label">断供后存活天数</div></div>
+    <div class="result-stat"><div class="value">¥${fmt(best.totalLoss)}</div><div class="label">最低总损失（${best.name}）</div></div>
+    <div class="result-stat"><div class="value">${best.downtime.toFixed(1)} 天</div><div class="label">预计停产天数</div></div>
+    <div class="result-stat" style="background:#fefce8;border-color:#fde68a;"><div class="value" style="color:#a16207;">🏆 ${best.name}</div><div class="label">推荐方案</div></div>`;
+
+  const medals = ['gold','silver','bronze'], emojis = ['🥇','🥈','🥉'];
+  document.getElementById('ranking-list').innerHTML = results.map((a,i) => `
+    <div class="rank-card ${i===0?'best':''}">
+      <div class="rank-badge ${medals[i]||'silver'}">${emojis[i]||(i+1)}</div>
+      <div class="rank-info">
+        <div class="rank-name">${esc(a.name)}</div>
+        <div class="rank-meta">到货 ${a.leadTime} 天 | 单价 ¥${a.unitPrice} | 质量 ${(a.quality*100).toFixed(0)}%${i===0?' | <b style="color:#16a34a;">推荐</b>':''}</div>
+      </div>
+      <div class="rank-loss">
+        <div class="total">¥${fmt(a.totalLoss)}</div>
+        <div class="breakdown">停产¥${fmt(a.prodLoss)} + 切换¥${fmt(a.switchCost)} + 违约¥${fmt(a.orderPenalty)}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('detail-section').innerHTML = '<hr>' + results.map((a,i) => `
+    <div style="margin-bottom:20px;">
+      <button class="audit-toggle" onclick="toggleDetail(this,'detail-${i}')">▸ ${esc(a.name)} — 时间线 & 审计链</button>
+      <div class="audit-list" id="detail-${i}">
+        <div class="timeline">${a.timeline.map(t => `
+          <div class="timeline-event"><div class="t-day">Day ${t.day}</div><div class="t-event">${esc(t.event)}</div><div class="t-detail">${esc(t.detail)}</div></div>`).join('')}</div>
+        <div style="margin-top:12px;font-size:12px;color:#64748b;font-weight:600;">审计链：</div>
+        ${a.audit.map(e => `<div class="audit-entry">${esc(e)}</div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleDetail(btn, id) {
+  const el = document.getElementById(id);
+  const open = el.classList.toggle('open');
+  btn.textContent = (open ? '▾ ' : '▸ ') + btn.textContent.substring(2);
+}
+
+function fmt(n) { return n == null || isNaN(n) ? '0' : Math.round(n).toLocaleString('zh-CN'); }
+function showError(msg) { const el = document.getElementById('input-error'); el.textContent = msg; el.classList.remove('hidden'); }
+
+addAltRow();
+</script>
+</body>
+</html>
