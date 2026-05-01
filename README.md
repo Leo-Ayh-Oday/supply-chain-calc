@@ -3,7 +3,7 @@
 > 输入你的供应商清单，秒懂断供后果。
 
 [**✨ 在线体验**](https://Leo-Ayh-Oday.github.io/supply-chain-calc) · [报告 Bug](https://github.com/Leo-Ayh-Oday/supply-chain-calc/issues) · [Star ⭐](https://github.com/Leo-Ayh-Oday/supply-chain-calc)
-
+微信号:f01290724 网页里的是邀请码
 ---
 
 ## 这是什么
